@@ -58,7 +58,7 @@ class Gentleman
 			elsif div.child.class.to_s == "Nokogiri::XML::Text"
 				pa[:type] = "text"
 				pa[:content] = div.text
-			else
+			elsif div.child.child
 				pa[:type] = "illustration"
 				#puts div["id"]
 				pa[:content] = down_pic('http://lknovel.lightnovel.cn' \
@@ -137,21 +137,17 @@ class Gentleman
 		end
 	end
 
-	def gentleman
-		num = 726.to_s
-		auth_file = "auth.txt"
-
+	def gentleman(num)
 		@url = "http://lknovel.lightnovel.cn/main/vollist/#{num}.html"
-		File.open(auth_file, "r") { |file| @user, @pass = file.gets, file.gets }
 
 		#puts login.body
 		#login
 
 		scan
-		check
+		#check
 		generate
 	end
 end
 
 g = Gentleman.new
-g.gentleman
+g.gentleman(ARGV[0])
