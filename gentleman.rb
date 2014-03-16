@@ -1,6 +1,7 @@
 require 'mechanize'
 require 'open-uri'
 require 'digest'
+require 'watir-webdriver'
 
 class String
 	def drop
@@ -10,7 +11,7 @@ end
 
 class Gentleman
 	def initialize
-		@agent = Mechanize.new
+		@agent = Watir::Browser.new :firefox
 		Dir.mkdir("tmp/") unless File.exist?("tmp/")
 		Dir.mkdir("gen/") unless File.exist?("gen/")
 	end
@@ -30,7 +31,7 @@ class Gentleman
 	end
 
 	def login
-		page = @agent.get("http://lknovel.lightnovel.cn/main/login.html")
+		page = @agent.goto("http://lknovel.lightnovel.cn/main/login.html")
 		page.forms.each { |f| puts f["id"] }
 		login_form = page.forms.first
 		#puts login_form["id"]
@@ -44,8 +45,10 @@ class Gentleman
 
 	def chap_scan(url)
 		cp = {}
-		page = @agent.get(url)
-		doc = Nokogiri::HTML(page.body)
+		@agent.goto(url)
+		@agent.wait
+		page = @agent.html()
+		doc = Nokogiri::HTML(page)
 
 		cp[:title] = doc.xpath('//h3[@class="ft-20"]').text.drop
 		cp[:content] = []
@@ -58,7 +61,8 @@ class Gentleman
 			else
 				pa[:type] = "illustration"
 				#puts div["id"]
-				pa[:content] = down_pic(div.child.child["href"])
+				pa[:content] = down_pic('http://lknovel.lightnovel.cn' \
+				                        + div.child.child["href"])
 			end
 			cp[:content].push pa
 		end
@@ -68,8 +72,10 @@ class Gentleman
 
 	def vol_scan(url)
 		sv = {}
-		page = @agent.get(url)
-		doc = Nokogiri::HTML(page.body)
+		@agent.goto(url)
+		@agent.wait
+		page = @agent.html()
+		doc = Nokogiri::HTML(page)
 
 		sv[:title] = doc.xpath('//h1[@class="ft-24"]/strong').text.drop
 		cover_url = doc.xpath('//div[@class="lk-book-cover"]/a/img')[0]["src"]
@@ -85,8 +91,11 @@ class Gentleman
 	end
 
 	def scan
-		page = @agent.get(@url)
-		doc = Nokogiri::HTML(page.body)
+		@agent.goto(@url)
+		@agent.wait
+		page = @agent.html()
+		doc = Nokogiri::HTML(page)
+
 		@title = doc.xpath('//h1[@class="ft-24"]/strong').text.drop
 		@author = doc.xpath('//td[@width="140"]/a')[0].text.drop
 		#@author = doc.xpath('//td').select{|td| td.text=='作者：'}[0].text.drop
@@ -118,9 +127,9 @@ class Gentleman
 					file.puts '# ' + chap[:title]
 					chap[:content].each do |cont|
 						if cont[:type] == "text"
-							file.puts cont[:content]
+							file.puts cont[:content] + "\n\n"
 						elsif cont[:content]
-							file.puts '![](../' + cont[:content] + ')'
+							file.puts '![](../' + cont[:content] + ")\n\n"
 						end
 					end
 				end
