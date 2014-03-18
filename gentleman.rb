@@ -2,6 +2,7 @@ require 'mechanize'
 require 'open-uri'
 require 'digest'
 require 'watir-webdriver'
+require 'headless'
 
 class String
 	def drop
@@ -11,6 +12,8 @@ end
 
 class Gentleman
 	def initialize
+		@headless = Headless.new
+		@headless.start
 		@agent = Watir::Browser.new :firefox
 		Dir.mkdir("tmp/") unless File.exist?("tmp/")
 		Dir.mkdir("gen/") unless File.exist?("gen/")
@@ -147,7 +150,13 @@ class Gentleman
 		#check
 		generate
 	end
+
+	def finish
+		@agent.close
+		@headless.destroy
+	end
 end
 
 g = Gentleman.new
 g.gentleman(ARGV[0])
+g.finish
