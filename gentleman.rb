@@ -2,7 +2,7 @@ require 'mechanize'
 require 'open-uri'
 require 'digest'
 require 'watir-webdriver'
-require 'headless'
+#require 'headless'
 
 class String
 	def drop
@@ -12,8 +12,8 @@ end
 
 class Gentleman
 	def initialize
-		@headless = Headless.new
-		@headless.start
+		#@headless = Headless.new
+		#@headless.start
 		@agent = Watir::Browser.new :firefox
 		Dir.mkdir("tmp/") unless File.exist?("tmp/")
 		Dir.mkdir("gen/") unless File.exist?("gen/")
@@ -84,6 +84,8 @@ class Gentleman
 		cover_url = doc.xpath('//div[@class="lk-book-cover"]/a/img')[0]["src"]
 		sv[:cover] = down_pic('http://lknovel.lightnovel.cn'+cover_url)
 
+		puts "Scanning Vol. #{sv[:title]}"
+
 		sv[:chapters] = []
 		doc.xpath('//li[@class="span3"]/a').each do |link|
 			#puts link.child.class
@@ -153,7 +155,7 @@ class Gentleman
 
 	def finish
 		@agent.close
-		@headless.destroy
+		#@headless.destroy
 	end
 end
 
